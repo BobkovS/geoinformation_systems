@@ -17,3 +17,9 @@ def building_variances():
     except Exception:
         resp_data["errors"] = "Не получается найти выбранное место, попробуйте другое"
         return make_response(jsonify(resp_data))
+
+@app.route('/district_amenities')
+def district_amenities():
+    import osmnx as ox
+    town_name = "Пермь Ленинский район"
+    Ameneties = ox.pois_from_place(town_name)
