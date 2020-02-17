@@ -1,25 +1,23 @@
-import osmnx as ox
+import traceback
+
 from flask import request, jsonify, make_response
 
 from app import app
+from app.people_count_task.scripts.score_people import score_people_count_script
 
 
-@app.route('/town_buildings_variances', methods=["POST"])
-def building_variances():
+@app.route('/score_people_count', methods=["POST"])
+def people_count():
     resp_data = {"building_variances": None,
+                 "people_count": None,
                  "errors": None}
     req_json = request.get_json()
-    town_name = req_json["town_name"]
+    place_name = req_json["place_name"]
     try:
-        buildings = ox.footprints_from_place(town_name)
-        resp_data["building_variances"] = buildings['building'].value_counts().to_dict()
+        resp_data['people_count'], resp_data['building_variances'] = score_people_count_script(place_name)
+        resp_data['people_count'] = str(resp_data['people_count'])
+        resp_data['building_variances'] = str(resp_data['building_variances'])
         return make_response(jsonify(resp_data))
     except Exception:
-        resp_data["errors"] = "Не получается найти выбранное место, попробуйте другое"
+        resp_data["errors"] = traceback.format_exc()
         return make_response(jsonify(resp_data))
-
-@app.route('/district_amenities')
-def district_amenities():
-    import osmnx as ox
-    town_name = "Пермь Ленинский район"
-    Ameneties = ox.pois_from_place(town_name)
