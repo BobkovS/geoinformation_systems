@@ -1,11 +1,12 @@
+import os
 import pickle
 
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 
-data = pd.read_csv('../../data.csv')
-
+data = pd.read_csv(os.path.join('..', 'data', 'data.csv'))
 data = data[np.isfinite(data['poly_shapes_count'])]
 
 list_of_levels = list(range(200))
@@ -36,9 +37,8 @@ train_x = train.drop(['building'], axis=1)
 train_y = train.building
 test_x = test.drop(['building'], axis=1)
 
-from sklearn.linear_model import LogisticRegression
-
 clf = LogisticRegression(verbose=True, solver='lbfgs', n_jobs=-1)
 clf.fit(train_x, train_y)
 
-pickle.dump(clf, open('../../model.pkl', 'wb'))
+pickle.dump(clf, open(os.path.join('..', 'data', 'model.pkl'), 'wb'))
+pickle.dump(dv, open(os.path.join('..', 'data', 'encoder.pkl'), 'wb'))

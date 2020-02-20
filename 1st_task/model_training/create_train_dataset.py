@@ -3,8 +3,7 @@ import warnings
 
 import osmnx as ox
 import pandas as pd
-
-from app.people_count_task.utils import get_data_from_polygon
+from osgeo import osr, ogr
 
 warnings.filterwarnings('ignore')
 
@@ -12,6 +11,24 @@ places = ["Пермь", "Екатеринбург", "Челябинск", "Ом�
 
 result_dataframe = pd.DataFrame(
     columns=["building", "building:levels", "area", "horizontal_len", "vertical_len", "poly_shapes_count"])
+
+
+def get_data_from_polygon(geometry):
+    json = {'type': 'Polygon',
+            'coordinates': [list(geometry.exterior.coords)]}
+
+    source = osr.SpatialReference()
+    source.ImportFromEPSG(4326)
+    target = osr.SpatialReference()
+    target.ImportFromEPSG(5243)
+
+    transform = osr.CoordinateTransformation(source, target)
+    poly = ogr.CreateGeometryFromJson(str(json).replace('(', '[').replace(')', ']'))
+    poly.Transform(transform)
+    x1, x2, y1, y2 = poly.GetEnvelope()
+    h_len, v_len, area = abs(x2 - x1), abs(y2 - y1), poly.GetArea()
+    return area, h_len, v_len
+
 
 for place in places:
     print(place)
@@ -31,4 +48,4 @@ for place in places:
     data = data.drop(['geometry'], axis=1)
     result_dataframe = result_dataframe.append(data)
     result_dataframe = result_dataframe.reset_index(drop=True)
-    result_dataframe.to_csv(os.path.join('app', 'people_count_task', 'data', 'data.csv'), index=False)
+    result_dataframe.to_csv(os.path.join('..', 'data', 'data.csv'), index=False)
